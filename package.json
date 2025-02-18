@@ -3,6 +3,7 @@
     "build": "bun build editor.ts --outfile=bundle.js  --target browser"
   },
   "dependencies": {
+    "@hpcc-js/wasm-graphviz": "^1.7.0",
     "@types/bun": "^1.2.2",
     "@types/seed-random": "^2.2.4",
     "seed-random": "^2.2.0",

@@ -1,7 +1,10 @@
+// import { genSvg } from "./dot"
+
+import { genSvg } from "./dot"
 
 export type Id = [agent: string, seq: number] // GUIDs that compress
 
-type LV = number
+export type LV = number
 
 type OpInner<T> = {
   type: 'ins',
@@ -12,14 +15,14 @@ type OpInner<T> = {
   pos: number,
 }
 
-type Op<T> = OpInner<T> & {
+export type Op<T> = OpInner<T> & {
   id: Id,
   parents: LV[],
 }
 
 type RemoteVersion = Record<string, number> // Last known seq number for every agent
 
-type OpLog<T> = {
+export type OpLog<T> = {
   ops: Op<T>[]
   frontier: LV[],
 
@@ -419,20 +422,23 @@ export class CRDTDocument {
 
 
 
-// const oplog1 = createOpLog<string>()
-// localInsert(oplog1, 'seph', 0, [...'hi'])
+const oplog1 = createOpLog<string>()
+localInsert(oplog1, 'seph', 0, [...'hi'])
 
-// const oplog2 = createOpLog<string>()
-// localInsert(oplog2, 'alice', 0, [...'yo'])
+const oplog2 = createOpLog<string>()
+localInsert(oplog2, 'alice', 0, [...'yo'])
 
-// mergeInto(oplog1, oplog2)
-// mergeInto(oplog2, oplog1)
+mergeInto(oplog1, oplog2)
+mergeInto(oplog2, oplog1)
 
-// localInsert(oplog2, 'alice', 4, [...'x'])
+localInsert(oplog2, 'alice', 4, [...'x'])
 
-// // console.log(oplog1)
-// // console.table(oplog2.ops)
-// // console.table(oplog2.ops)
+// console.log(oplog1)
+// console.table(oplog2.ops)
+// console.table(oplog2.ops)
 
-// const result = checkout(oplog2).join('')
-// console.log('doc is', result)
+const result = checkout(oplog2).join('')
+console.log('doc is', result)
+
+
+genSvg(oplog2, 'blah.svg')
