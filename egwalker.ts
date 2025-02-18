@@ -118,22 +118,6 @@ function mergeInto<T>(dest: OpLog<T>, src: OpLog<T>) {
 
 
 /// Generate a document from oplog
-
-function expandVersionToSet(oplog: OpLog<any>, frontier: LV[]): Set<LV> {
-  const set = new Set<LV>
-  const toExpand = frontier.slice()
-
-  while (toExpand.length > 0) {
-    const lv = toExpand.pop()!
-    if (set.has(lv)) continue
-
-    set.add(lv)
-    const op = oplog.ops[lv]
-    toExpand.push(...op.parents)
-  }
-  return set
-}
-
 type DiffResult = { aOnly: LV[], bOnly: LV[] }
 
 function diff(oplog: OpLog<any>, a: LV[], b: LV[]): DiffResult {
@@ -182,18 +166,6 @@ function diff(oplog: OpLog<any>, a: LV[], b: LV[]): DiffResult {
   return { aOnly, bOnly }
 }
 
-
-
-function diffSlow(oplog: OpLog<any>, a: LV[], b: LV[]): DiffResult {
-  // bad (slow) implementation
-  const aExpand = expandVersionToSet(oplog, a)
-  const bExpand = expandVersionToSet(oplog, b)
-
-  return {
-    aOnly: [...aExpand.difference(bExpand)],
-    bOnly: [...bExpand.difference(aExpand)],
-  }
-}
 
 const NOT_YET_INSERTED = -1
 const INSERTED = 0
