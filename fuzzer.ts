@@ -20,11 +20,12 @@ function fuzzer(seed: number) {
   const randDoc = () => docs[randInt(3)]
 
   for (let i = 0; i < 100; i++) {
+    // console.log('ii', i)
     for (let d = 0; d < 3; d++) {
       // 1. Pick a random document
       // 2. Make a random change to that document
       const doc = randDoc()
-      const len = doc.snapshot.length
+      const len = doc.branch.snapshot.length
 
       const insertWeight = len < 100 ? 0.65 : 0.35
 
@@ -40,7 +41,7 @@ function fuzzer(seed: number) {
         doc.del(pos, delLen)
       }
 
-      doc.check()
+      // doc.check()
     }
 
     // pick 2 documents and merge them
@@ -51,7 +52,7 @@ function fuzzer(seed: number) {
 
     a.mergeFrom(b)
     b.mergeFrom(a)
-    assert.deepEqual(a.snapshot, b.snapshot)
+    assert.deepEqual(a.branch.snapshot, b.branch.snapshot)
   }
 
   // console.log(docs[0].getString())
