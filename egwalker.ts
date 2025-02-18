@@ -1,6 +1,6 @@
 // import { genSvg } from "./dot"
-
-import { genSvg } from "./dot"
+import assert from 'node:assert/strict'
+import PriorityQueue from "priorityqueuejs"
 
 export type Id = [agent: string, seq: number] // GUIDs that compress
 
@@ -135,7 +135,56 @@ function expandVersionToSet(oplog: OpLog<any>, frontier: LV[]): Set<LV> {
 }
 
 type DiffResult = { aOnly: LV[], bOnly: LV[] }
+
 function diff(oplog: OpLog<any>, a: LV[], b: LV[]): DiffResult {
+  const enum DiffFlag { A, B, Shared }
+  const flags = new Map<LV, DiffFlag>
+
+  let numShared = 0
+
+  const queue = new PriorityQueue<LV>()
+
+  function enq(v: LV, flag: DiffFlag) {
+    // Queue v, with the specified flag.
+    const oldFlag = flags.get(v)
+    if (oldFlag == null) {
+      queue.enq(v)
+      flags.set(v, flag)
+      if (flag === DiffFlag.Shared) numShared++
+    } else if (flag !== oldFlag && oldFlag !== DiffFlag.Shared) {
+      flags.set(v, DiffFlag.Shared)
+      numShared++
+    }
+  }
+
+  for (const aa of a) enq(aa, DiffFlag.A)
+  for (const bb of b) enq(bb, DiffFlag.B)
+
+  const aOnly: LV[] = [], bOnly: LV[] = []
+
+  while (queue.size() > numShared) {
+    const lv = queue.deq()
+    const flag = flags.get(lv)!
+
+    if (flag === DiffFlag.Shared) numShared--
+    else if (flag === DiffFlag.A) aOnly.push(lv)
+    else if (flag === DiffFlag.B) bOnly.push(lv)
+
+    const op = oplog.ops[lv]
+    for (const p of op.parents) enq(p, flag)
+  }
+
+  // console.log('diff', a, b, aOnly, bOnly)
+
+  // const oldResult = diffSlow(oplog, a, b)
+  // assert.deepEqual(new Set(oldResult.aOnly), new Set(aOnly))
+  // assert.deepEqual(new Set(oldResult.bOnly), new Set(bOnly))
+  return { aOnly, bOnly }
+}
+
+
+
+function diffSlow(oplog: OpLog<any>, a: LV[], b: LV[]): DiffResult {
   // bad (slow) implementation
   const aExpand = expandVersionToSet(oplog, a)
   const bExpand = expandVersionToSet(oplog, b)
@@ -441,4 +490,4 @@ const result = checkout(oplog2).join('')
 console.log('doc is', result)
 
 
-genSvg(oplog2, 'blah.svg')
+// genSvg(oplog2, 'blah.svg')

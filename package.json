@@ -5,7 +5,9 @@
   "dependencies": {
     "@hpcc-js/wasm-graphviz": "^1.7.0",
     "@types/bun": "^1.2.2",
+    "@types/priorityqueuejs": "^1.0.4",
     "@types/seed-random": "^2.2.4",
+    "priorityqueuejs": "^2.0.0",
     "seed-random": "^2.2.0",
     "typescript": "^5.7.3"
   }
