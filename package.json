@@ -1,5 +1,11 @@
 {
+  "scripts": {
+    "build": "bun build editor.ts --outfile=bundle.js  --target browser"
+  },
   "dependencies": {
+    "@types/bun": "^1.2.2",
+    "@types/seed-random": "^2.2.4",
+    "seed-random": "^2.2.0",
     "typescript": "^5.7.3"
   }
 }

@@ -346,18 +346,24 @@ function checkout<T>(oplog: OpLog<T>): T[] {
 
     // retreat
     for (const i of aOnly) {
-      console.log('retreat', i)
+      // console.log('retreat', i)
       retreat(doc, oplog, i)
+
+      // console.table(doc.items)
     }
     // advance
     for (const i of bOnly) {
-      console.log('advance', i)
+      // console.log('advance', i)
       advance(doc, oplog, i)
+
+      // console.table(doc.items)
     }
 
     // apply
-    console.log('apply', lv) // Add items to items[]
+    // console.log('apply', lv) // Add items to items[]
     apply(doc, oplog, snapshot, lv)
+
+    // console.table(doc.items)
     doc.currentVersion = [lv]
   }
 
@@ -365,21 +371,68 @@ function checkout<T>(oplog: OpLog<T>): T[] {
 }
 
 
+export class CRDTDocument {
+  oplog: OpLog<string>
+  agent: string
+  // snapshot: string
+  snapshot: string[]
+
+  constructor(agent: string) {
+    this.oplog = createOpLog()
+    this.agent = agent
+    this.snapshot = []
+  }
+
+  check() {
+    const actualDoc = checkout(this.oplog)
+    if (actualDoc.join('') !== this.snapshot.join('')) throw Error('Document out of sync')
+  }
+
+  ins(pos: number, text: string) {
+    const inserted = [...text]
+    localInsert(this.oplog, this.agent, pos, inserted)
+    this.snapshot.splice(pos, 0, ...inserted)
+  }
+
+  del(pos: number, delLen: number) {
+    localDelete(this.oplog, this.agent, pos, delLen)
+    // this.snapshot = checkout(this.oplog)
+    this.snapshot.splice(pos, delLen)
+  }
+
+  getString() {
+    // return checkout(this.oplog).join('')
+    return this.snapshot.join('')
+  }
+
+  mergeFrom(other: CRDTDocument) {
+    mergeInto(this.oplog, other.oplog)
+    this.snapshot = checkout(this.oplog)
+  }
+
+  reset() {
+    this.oplog = createOpLog()
+    this.snapshot = []
+  }
+}
 
 
 
-const oplog1 = createOpLog<string>()
-localInsert(oplog1, 'seph', 0, [...'hi'])
 
-const oplog2 = createOpLog<string>()
-localInsert(oplog2, 'alice', 0, [...'yooooo'])
+// const oplog1 = createOpLog<string>()
+// localInsert(oplog1, 'seph', 0, [...'hi'])
 
-mergeInto(oplog1, oplog2)
-mergeInto(oplog2, oplog1)
+// const oplog2 = createOpLog<string>()
+// localInsert(oplog2, 'alice', 0, [...'yo'])
 
-console.log(oplog1)
-console.table(oplog2.ops)
-// console.table(oplog2.ops)
+// mergeInto(oplog1, oplog2)
+// mergeInto(oplog2, oplog1)
 
-const result = checkout(oplog2).join('')
-console.log('doc is', result)
+// localInsert(oplog2, 'alice', 4, [...'x'])
+
+// // console.log(oplog1)
+// // console.table(oplog2.ops)
+// // console.table(oplog2.ops)
+
+// const result = checkout(oplog2).join('')
+// console.log('doc is', result)
